@@ -41,7 +41,7 @@ def GlobalAssembly(x,c,d,func):
 
     for i in range(M - 1):
         h = x[i+1] - x[i]
- 
+
         fval = func(x[i])
 
         if i > 0:
@@ -83,7 +83,7 @@ def GlobalAssembly(x,c,d,func):
 
     return A, b
 
-def BVP1D(L, x, c, d,func, plot=True):
+def BVP1D(L, x, c, d,func):
     
     if type(x) == int:
         x = np.linspace(0, L, x)
@@ -92,9 +92,6 @@ def BVP1D(L, x, c, d,func, plot=True):
 
     u = sparse.linalg.spsolve(A, b)
     
-    if plot:
-        plt.plot(x, u, '.',label="FEM solution")
-        plt.show()
 
     return u
 
@@ -105,14 +102,14 @@ def prep_grid(L,c,d,VXc,EToVc,func):
 
     # sorter her efter value
     sort_indices_c = np.argsort(VXc)
-    uc = BVP1D(L, VXc[sort_indices_c], c, d,func, plot=False)
+    uc = BVP1D(L, VXc[sort_indices_c], c, d,func)
 
 
 
     EToVf, VXf,Old2New = refine_marked(EToVc,VXc,idxMarked)
 
     sort_indices_f = np.argsort(VXf)
-    uf = BVP1D(L, VXf[sort_indices_f], c, d,func, plot=False)
+    uf = BVP1D(L, VXf[sort_indices_f], c, d,func)
     
     # sorter her efter index
     uc = uc[np.argsort(sort_indices_c)]
@@ -169,65 +166,30 @@ def DriverAMR17(L,c,d,VXc,func,tol, maxit):
     
     while len(idxMarked)>0 and it < maxit:
         
-        uc,uf, VXc, VXf, EToVc, EToVf, Old2New = prep_grid(L,c,d,VXc,EToVc,f)
+        uc,uf, VXc, VXf, EToVc, EToVf, Old2New = prep_grid(L,c,d,VXc,EToVc,func)
 
         err = compute_error_decrease(uc,uf,VXc,VXf,Old2New)
         
         # Change strategy here
         
         # Old
-        #idxMarked = np.where(err > tol)[0]
+        idxMarked = np.where(err > tol)[0]
         
-        # New
-        m = np.max(err)
-        if m > tol:
-            idxMarked = np.where(err > 0.91*m)[0]
-        else:
-            idxMarked = []
+        #m = np.max(err)
+        #if m > tol:
+        #    idxMarked = np.where(err > 0.91*m)[0]
+        #else:
+        #    idxMarked = []
     
         EToVc, VXc, Old2New = refine_marked(EToVc,VXc,idxMarked)
 
         it +=1
 
     VXc = np.sort(VXc)
-    uc = BVP1D(L, VXc, c, d,func, plot=False)
+    uc = BVP1D(L, VXc, c, d,func)
     
     
-    return VXc, uc, it,Old2New
-
-
-
-#%%
-u = lambda x: np.exp(-800*(x-0.4)**2) + 0.25 * np.exp(-40*(x-0.8)**2)
-L = 1
-c = u(0)
-d = u(1)
-VXc = np.linspace(0,1,4)
-idxs = np.arange(len(VXc))
-EToVc = np.vstack((idxs[:-1], idxs[1:])).T
-
-#func = lambda x: 1*x
-f = lambda x: (np.exp(-800*(x-0.4)**2)*((-1600*(x-0.4))**2-1601) + 0.25*np.exp(-40*(x-0.8)**2)*((-80*(x-0.8))**2-81))
-
-u_init = BVP1D(L, VXc, c, d,f, plot=True)
-
-#uc,uf, VXc, VXf, EToVc, EToVf, Old2New = prep_grid(L,c,d,VXc,EToVc,f)
-
-#uc,uf, VXc, VXf, EToVc, EToVf, Old2New = prep_grid(L,c,d,VXf,EToVf,f)
-
-
-#%%
-
-#plt.plot(VXf,uf,".")
-#plt.plot(VXc,uc,".")
-
-#%%
-
-VXc, uc, it,Old2New = DriverAMR17(L,c,d,VXc,f,tol=10**(-4), maxit=100)
-
-print(f"Number of points: {len(VXc)}")
-
-plt.plot(VXc,uc,".")
+    return VXc, uc, it
 
 
 
