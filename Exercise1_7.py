@@ -152,6 +152,7 @@ def compute_error_decrease(uc,uf,VXc,VXf,Old2New):
         b1 = ufi - a1 * xi
         b2 = ufj - a2 * xj
 
+
         int1 = ((a-a1)**2/3) * (xk**3 - xi**3) + (b-b1)**2 * (xk - xi) + (a-a1)*(b-b1) * (xk**2 - xi**2)
         int2 = ((a-a2)**2/3) * (xj**3 - xk**3) + (b-b2)**2 * (xj - xk) + (a-a2)*(b-b2) * (xj**2 - xk**2)
         
