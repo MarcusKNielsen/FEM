@@ -173,13 +173,13 @@ def DriverAMR17(L,c,d,VXc,func,tol, maxit):
         # Change strategy here
         
         # Old
-        idxMarked = np.where(err > tol)[0]
+#        idxMarked = np.where(err > tol)[0]
         
-        #m = np.max(err)
-        #if m > tol:
-        #    idxMarked = np.where(err > 0.91*m)[0]
-        #else:
-        #    idxMarked = []
+        m = np.max(err)
+        if m > tol:
+           idxMarked = np.where(err > 0.91*m)[0]
+        else:
+           idxMarked = []
     
         EToVc, VXc, Old2New = refine_marked(EToVc,VXc,idxMarked)
 
