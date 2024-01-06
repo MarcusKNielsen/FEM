@@ -41,7 +41,7 @@ def GlobalAssembly(x,c,d,func):
 
     for i in range(M - 1):
         h = x[i+1] - x[i]
-
+ 
         fval = func(x[i])
 
         if i > 0:
