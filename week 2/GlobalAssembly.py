@@ -17,10 +17,11 @@ def conelmtab(noelms1,noelms2):
     EToV = []
     for j in range(noelms1):
         for i in range(noelms2):
-            EToV.append([i+noelms2+1+noelms1*j,i+noelms1*j, i+noelms2+2+noelms1*j])
-            EToV.append([i+1+noelms1*j,i+noelms2+2+noelms1*j,i+noelms1*j])
+            EToV.append([i+noelms2+1+(noelms2+1)*j,i+(noelms2+1)*j, i+noelms2+2+(noelms2+1)*j])
+            EToV.append([i+1+(noelms2+1)*j,i+noelms2+2+(noelms2+1)*j,i+(noelms2+1)*j])
 
     return np.array(EToV)
+
 
 
 #%%
@@ -119,23 +120,23 @@ def assembly(VX, VY, EToV, lam1,lam2, qt):
 #%%
 
 
-#(x0, y0) = (0,0) 
-#L1 = 1
-#L2 = 1
-#noelms1 = 1
-#noelms2 = 1
-#q = lambda x,y: 0
-#lam1 = 1
-#lam2 = 1
-
-(x0, y0) = (-2.5, -4.8) 
-L1 = 7.6
-L2 = 5.9
+(x0, y0) = (0,0) 
+L1 = 1
+L2 = 1
 noelms1 = 4
 noelms2 = 3
-q = lambda x,y: -6*x+2*y-2
+q = lambda x,y: 0
 lam1 = 1
-lam2 = 2
+lam2 = 1
+
+# (x0, y0) = (-2.5, -4.8) 
+# L1 = 7.6
+# L2 = 5.9
+# noelms1 = 4
+# noelms2 = 3
+# q = lambda x,y: -6*x+2*y-2
+# lam1 = 1
+# lam2 = 1
 
 VX,VY = xy(x0,y0,L1,L2,noelms1,noelms2)
 EToV = conelmtab(noelms1,noelms2)
