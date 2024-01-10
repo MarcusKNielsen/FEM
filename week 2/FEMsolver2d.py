@@ -206,7 +206,7 @@ def plot_heatmap(u,VX,VY,ufun=None):
     X, Y = np.meshgrid(unique_x, unique_y)
 
     # Reshape u to the shape of X and Y
-    reshaped_u = u.reshape(X.shape)
+    reshaped_u = u.reshape(X.shape,order='A')
 
     # Create the heatmap
     heatmap = plt.pcolormesh(X, Y, reshaped_u, shading='auto')
