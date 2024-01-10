@@ -206,7 +206,7 @@ def plot_heatmap(u,VX,VY,ufun=None):
     X, Y = np.meshgrid(unique_x, unique_y)
 
     # Reshape u to the shape of X and Y
-    reshaped_u = u.reshape(X.shape,order='A')
+    reshaped_u = np.flip(u.reshape(X.shape),axis=1)
 
     # Create the heatmap
     heatmap = plt.pcolormesh(X, Y, reshaped_u, shading='auto')
@@ -221,7 +221,7 @@ def plot_heatmap(u,VX,VY,ufun=None):
 
     if ufun != None:
         error = np.abs(u - ufun(VX,VY))
-        error_reshaped = error.reshape(X.shape)
+        error_reshaped = np.flip(error.reshape(X.shape),axis=1)
         heatmap = plt.pcolormesh(X, Y, error_reshaped, shading='auto',cmap='hot')
 
         plt.colorbar(heatmap)  # This adds the color bar
