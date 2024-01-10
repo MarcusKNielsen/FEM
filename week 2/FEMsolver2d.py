@@ -1,6 +1,8 @@
 import scipy.sparse as sp
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 def xy(x0, y0, L1, L2, noelms1, noelms2):
     lx = L1 / noelms1
@@ -174,26 +176,57 @@ def neubc(VX,VY,EToV,beds,q,b):
     return b
 
 
-def BVP2D(x0,y0,L1,L2,noelms1,noelms2,qt,lam1,lam2,f,q):
+def BVP2D(x0,y0,L1,L2,noelms1,noelms2,qt,lam1,lam2,f,q=None):
     VX,VY = xy(x0,y0,L1,L2,noelms1,noelms2)
     EToV = conelmtab(noelms1,noelms2)
     bnodes = find_bnodes(noelms1,noelms2)
 
     A,b = assembly(VX, VY, EToV, lam1,lam2, qt)
     
-    beds = ConstructBeds(VX,VY,EToV)
-    b = neubc(VX,VY,EToV,beds,q,b)
+    if q != None:
+        beds = ConstructBeds(VX,VY,EToV,x0,y0,L1,L2)
+        b = neubc(VX,VY,EToV,beds,q,b)
     
     farr = [f(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
     A, b = dirbc(bnodes, farr, A, b)
 
-    
-    
 
     u = sp.linalg.spsolve(A,b)
 
     return u, VX, VY
 
 
+def plot_heatmap(u,VX,VY,ufun=None):
 
+    # Get the unique values in x and y
+    unique_x = np.unique(VX)
+    unique_y = np.unique(VY)
 
+    # Create a meshgrid
+    X, Y = np.meshgrid(unique_x, unique_y)
+
+    # Reshape u to the shape of X and Y
+    reshaped_u = u.reshape(X.shape)
+
+    # Create the heatmap
+    heatmap = plt.pcolormesh(X, Y, reshaped_u, shading='auto')
+
+    # Add a color bar
+    plt.colorbar(heatmap)  # This adds the color bar
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Heatmap of u(x, y)')
+    plt.show()
+
+    if ufun != None:
+        error = np.abs(u - ufun(VX,VY))
+        error_reshaped = error.reshape(X.shape)
+        heatmap = plt.pcolormesh(X, Y, error_reshaped, shading='auto',cmap='hot')
+
+        plt.colorbar(heatmap)  # This adds the color bar
+
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title('Heatmap of error')
+        plt.show()
