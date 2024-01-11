@@ -1,7 +1,5 @@
 import scipy.sparse as sp
 import numpy as np
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
 def xy(x0, y0, L1, L2, noelms1, noelms2):
@@ -147,39 +145,3 @@ def Driver28c(x0, y0, L1, L2, noelms1, noelms2, lam1, lam2, fun, qt):
 #    u = u[np.argsort(new_idx)]
 
     return VX, VY, EToV, u
-
-
-def plot_heatmap(u,VX,VY,ufun=None):
-
-    # Get the unique values in x and y
-    unique_x = np.unique(VX)
-    unique_y = np.unique(VY)
-
-    # Create a meshgrid
-    X, Y = np.meshgrid(unique_x, unique_y)
-
-    # Reshape u to the shape of X and Y
-    reshaped_u = np.flip(u.reshape(X.shape),axis=1)
-
-    # Create the heatmap
-    heatmap = plt.pcolormesh(X, Y, reshaped_u, shading='auto')
-
-    # Add a color bar
-    plt.colorbar(heatmap)  # This adds the color bar
-
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Heatmap of u(x, y)')
-    plt.show()
-
-    if ufun != None:
-        error = np.abs(u - ufun(VX,VY))
-        error_reshaped = np.flip(error.reshape(X.shape),axis=1)
-        heatmap = plt.pcolormesh(X, Y, error_reshaped, shading='auto',cmap='hot')
-
-        plt.colorbar(heatmap)  # This adds the color bar
-
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.title('Heatmap of error')
-        plt.show()

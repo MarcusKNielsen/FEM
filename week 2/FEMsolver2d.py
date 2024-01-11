@@ -1,7 +1,6 @@
 import scipy.sparse as sp
 import numpy as np
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 
 def xy(x0, y0, L1, L2, noelms1, noelms2):
@@ -222,16 +221,16 @@ def plot_heatmap(u,VX,VY,ufun=None):
 
         plt.xlabel('x')
         plt.ylabel('y')
-        plt.title('Heatmap of error')
+        plt.title('Heatmap of error |û(x)-u(x)|')
         plt.show()
 
 def L2_error_estimator(VX,VY,u,ufun,M=100):
-    x_space = np.linspace(x0, x0+L1, num=M)
-    y_space = np.linspace(y0, y0+L2, num=M)
+    x_space = np.linspace(min(VX), max(VX), num=M)
+    y_space = np.linspace(min(VY), max(VY), num=M)
     X, Y = np.meshgrid(x_space, y_space)
 
     # Interpolate u on the new grid
     new_u = griddata((VX, VY), u, (X, Y), method='linear')
-    error = np.linalg.norm(new_u.flatten()-ufun(X,Y).flatten(),2)
+    error = np.linalg.norm((new_u-ufun(X,Y)).flatten(),2)
 
     return error
