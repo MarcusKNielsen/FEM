@@ -2,7 +2,7 @@ import scipy.sparse as sp
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import griddata
+
 
 def xy(x0, y0, L1, L2, noelms1, noelms2):
     lx = L1 / noelms1
@@ -104,9 +104,6 @@ def dirbc(bnodes, f, A, b):
     M = len(b)
     for n,i in enumerate(bnodes):
 
-        if f[n] == None:
-            continue
-
         A[i,i] = 1
         b[i] = f[n]
 
@@ -119,15 +116,24 @@ def dirbc(bnodes, f, A, b):
     
     return A,b
 
-def find_bnodes(noelms1,noelms2):
-    bnodes = np.arange(noelms2+1)
-    for j in range(1,noelms1):
-        bnodes = np.append(bnodes, j*(noelms2+1))
-        bnodes = np.append(bnodes, j*(noelms2+1) + noelms2)
+# def find_bnodes(noelms1,noelms2):
+#     bnodes = np.arange(noelms2+1)
+#     for j in range(1,noelms1):
+#         bnodes = np.append(bnodes, j*(noelms2+1))
+#         bnodes = np.append(bnodes, j*(noelms2+1) + noelms2)
 
-    bnodes = np.append(bnodes, np.arange((noelms2+1)*noelms1, (noelms2+1)*(noelms1+1)))
+#     bnodes = np.append(bnodes, np.arange((noelms2+1)*noelms1, (noelms2+1)*(noelms1+1)))
 
-    return bnodes
+#     return bnodes
+
+def find_bnodes(VX,VY,x0,y0,L1,L2):
+    bnodes = []
+    for i in range(len(VX)):
+        if VX[i] - (x0+L1) > -1e-6 or VY[i] - (y0+L2) > -1e-6:
+            bnodes.append(i)
+
+    return np.array(bnodes)
+
 
 def ConstructBeds(VX,VY,EToV,x0,y0,L1,L2):
 
@@ -139,10 +145,11 @@ def ConstructBeds(VX,VY,EToV,x0,y0,L1,L2):
 
             mid = np.array([(VX[i]+VX[j])/2, (VY[i]+VY[j])/2])
 
-            if mid[0] <= x0 or mid[0]  >= x0 + L1 or mid[1] <= y0 or mid[1] >= y0 + L2:
+            if np.abs(mid[0]-x0-L1) < 1e-6 or np.abs(mid[1]-y0-L2) < 1e-6:
                 beds.append([n,k])
 
     return np.array(beds)
+
 
 def neubc(VX,VY,EToV,beds,q,b):
     for n,r in beds:
@@ -166,29 +173,32 @@ def neubc(VX,VY,EToV,beds,q,b):
     
     return b
 
-def BVP2D(x0,y0,L1,L2,noelms1,noelms2,qt,lam1,lam2,f,q=None):
+
+def Driver28b(x0, y0, L1, L2, noelms1, noelms2, lam1, lam2, fun, qt):
     VX,VY = xy(x0,y0,L1,L2,noelms1,noelms2)
     EToV = conelmtab(noelms1,noelms2)
-    bnodes = find_bnodes(noelms1,noelms2)
+    bnodes = find_bnodes(VX,VY,x0,y0,L1,L2)
 
     A,b = assembly(VX, VY, EToV, lam1,lam2, qt)
     
-    if q != None:
-        beds = ConstructBeds(VX,VY,EToV,x0,y0,L1,L2)
-        b = neubc(VX,VY,EToV,beds,q,b)
+
+    # beds = ConstructBeds(VX,VY,EToV,x0,y0,L1,L2)
+
+    # b = neubc(VX,VY,EToV,beds,q,b)
     
-    farr = [f(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
+    farr = [fun(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
     A, b = dirbc(bnodes, farr, A, b)
 
     # reorder matrix
-    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
-    A = A[new_idx][:, new_idx]
-    b = b[new_idx]
+#    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
+#    A = A[new_idx][:, new_idx]
+#    b = b[new_idx]
 
     u = sp.linalg.spsolve(A,b)
-    u = u[np.argsort(new_idx)]
+#    u = u[np.argsort(new_idx)]
 
-    return u, VX, VY
+    return VX, VY, EToV, u
+
 
 def plot_heatmap(u,VX,VY,ufun=None):
 
@@ -224,14 +234,3 @@ def plot_heatmap(u,VX,VY,ufun=None):
         plt.ylabel('y')
         plt.title('Heatmap of error')
         plt.show()
-
-def L2_error_estimator(VX,VY,u,ufun,M=100):
-    x_space = np.linspace(x0, x0+L1, num=M)
-    y_space = np.linspace(y0, y0+L2, num=M)
-    X, Y = np.meshgrid(x_space, y_space)
-
-    # Interpolate u on the new grid
-    new_u = griddata((VX, VY), u, (X, Y), method='linear')
-    error = np.linalg.norm(new_u.flatten()-ufun(X,Y).flatten(),2)
-
-    return error

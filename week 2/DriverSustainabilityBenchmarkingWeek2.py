@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
 
 # TODO: PUT IN YOUR GROUP NO AND STUDENT IDs FOR THE GROUP HERE
-groupNo = 'X'  # Replace 'X' with your group no.
-groupStudentIDs = 'Y/Z'  # Replace 'Y/Z' with your student id's.
+groupNo = '22'  # Replace 'X' with your group no.
+groupStudentIDs = 's222303/s230951/s223190'  # Replace 'Y/Z' with your student id's.
 
 # PATHS
 dirThisScript = os.path.dirname(os.path.abspath(__file__))
