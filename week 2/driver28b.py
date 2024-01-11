@@ -1,3 +1,5 @@
+# Student IDs: 222303/s230951/s223190
+
 import scipy.sparse as sp
 import numpy as np
 
@@ -113,16 +115,6 @@ def dirbc(bnodes, f, A, b):
     
     return A,b
 
-# def find_bnodes(noelms1,noelms2):
-#     bnodes = np.arange(noelms2+1)
-#     for j in range(1,noelms1):
-#         bnodes = np.append(bnodes, j*(noelms2+1))
-#         bnodes = np.append(bnodes, j*(noelms2+1) + noelms2)
-
-#     bnodes = np.append(bnodes, np.arange((noelms2+1)*noelms1, (noelms2+1)*(noelms1+1)))
-
-#     return bnodes
-
 def find_bnodes(VX,VY,x0,y0,L1,L2):
     bnodes = []
     for i in range(len(VX)):
@@ -178,20 +170,14 @@ def Driver28b(x0, y0, L1, L2, noelms1, noelms2, lam1, lam2, fun, qt):
 
     A,b = assembly(VX, VY, EToV, lam1,lam2, qt)
     
-
-    # beds = ConstructBeds(VX,VY,EToV,x0,y0,L1,L2)
-
-    # b = neubc(VX,VY,EToV,beds,q,b)
-    
     farr = [fun(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
     A, b = dirbc(bnodes, farr, A, b)
 
-    # reorder matrix
-#    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
-#    A = A[new_idx][:, new_idx]
-#    b = b[new_idx]
+    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
+    A = A[new_idx][:, new_idx]
+    b = b[new_idx]
 
     u = sp.linalg.spsolve(A,b)
-#    u = u[np.argsort(new_idx)]
+    u = u[np.argsort(new_idx)]
 
     return VX, VY, EToV, u

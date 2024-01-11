@@ -1,3 +1,5 @@
+# Student IDs: 222303/s230951/s223190
+
 import scipy.sparse as sp
 import numpy as np
 
@@ -136,12 +138,11 @@ def Driver28c(x0, y0, L1, L2, noelms1, noelms2, lam1, lam2, fun, qt):
     farr = [fun(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
     A, b = dirbc(bnodes, farr, A, b)
 
-    # reorder matrix
-#    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
-#    A = A[new_idx][:, new_idx]
-#    b = b[new_idx]
+    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
+    A = A[new_idx][:, new_idx]
+    b = b[new_idx]
 
     u = sp.linalg.spsolve(A,b)
-#    u = u[np.argsort(new_idx)]
+    u = u[np.argsort(new_idx)]
 
     return VX, VY, EToV, u
