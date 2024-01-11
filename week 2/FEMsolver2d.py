@@ -190,8 +190,13 @@ def BVP2D(x0,y0,L1,L2,noelms1,noelms2,qt,lam1,lam2,f,q=None):
     farr = [f(VX[bnodes[i]], VY[bnodes[i]]) for i in range(len(bnodes))]
     A, b = dirbc(bnodes, farr, A, b)
 
+    # reorder matrix
+    new_idx = sp.csgraph.reverse_cuthill_mckee(A, symmetric_mode=True)
+    A = A[new_idx][:, new_idx]
+    b = b[new_idx]
 
     u = sp.linalg.spsolve(A,b)
+    u = u[np.argsort(new_idx)]
 
     return u, VX, VY
 
