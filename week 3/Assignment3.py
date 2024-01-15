@@ -1,7 +1,6 @@
 import scipy.sparse as sp
 import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 
 def conelmtab(x0, L, noelms):
     VX = np.linspace(x0, x0+L, noelms+1)
@@ -40,7 +39,7 @@ def assembly1D(VX, EToV, D, qt, t):
         ii[count:count + 4] = [i, i, j, j]
         jj[count:count + 4] = [i, j, j, i]
         r[count:count + 4] = list(np.array([D/h,-D/h,D/h,-D/h]))
-        s[count:count + 4] = list(np.array([h/3,-h/6,h/3,-h/6]))
+        s[count:count + 4] = list(np.array([h/3,h/6,h/3,h/6]))
         
         count += 4
 
@@ -91,10 +90,14 @@ def RS_1D(R,S,dt,d2):
 
     return R,S
 
+
+# Step 4 Factor but we don't.
+
 def construct_e(S,b,un,d2):
     return S@un + d2*b
 
 
+# Step 7 + 8
 def advance_b(d,EToV, qt,tnext):
     bnext = np.zeros(len(EToV[:,0])+1)
 
@@ -117,6 +120,7 @@ def advance_b(d,EToV, qt,tnext):
 
     return bnext
 
+# Step 9
 def update_e(e,bnext,d1):
     return e + d1*bnext    
     
@@ -130,17 +134,20 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     # Step 2: Dirichlet BC
     R,S, b, d = dirbc1D(f, R,S, b)
 
+    # Compute d1, d2
+
     # Step 3: Overwrite R and S
     R,S = RS_1D(R,S,dt,d2)
 
     # Step 5 + 6: Construct e
-    e = S@un + d2*b
+
+    e = construct_e(S,b,un,d2)
 
     # Step 7 + 8: Advance b
     b = advance_b(d,EToV, qt,t0+dt)
 
     # Step 9: compute e
-    e + d1*b
+    e = update_e(e,b,d1)
 
 
     # Step 10: Solve!
@@ -149,7 +156,7 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     return unext
 
 ## Testcase:
-n = 100
+n = 150
 VX, EToV = conelmtab(0,np.pi,n)
 
 D = 1
@@ -162,23 +169,54 @@ un = np.sin(VX)
 
 theta = 1.0
 dt = 0.1
-# T = 0.5
 
-# plt.plot(VX,un,label=f"t=0")
+unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)
 
-# while t <= T:
-#     un = oneit(VX, EToV, f, D, qt, t,dt,un,theta)
-#     t += dt
-#     plt.plot(VX,un,label=f"t={t}"
-
-
-# plt.legend()
-# plt.show()
-
-unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)   
-
+plt.figure()
 plt.plot(VX,un,label="u0")
-plt.plot(VX,unext, label="u1")
-plt.plot(VX,un*np.exp(-dt),'--', label="test")
+plt.plot(VX,unext,label="unext")
+plt.plot(VX,un*np.exp(-dt), label="True")
 plt.legend()
 plt.show()
+
+
+#%% Time Convergence test
+
+
+def u_true(x,t):
+    return np.sin(x)*np.exp(-D*t)
+
+
+N = list(range(2,50))
+error = np.zeros(len(N))
+
+
+for i,n in enumerate(N):
+
+    unext = un
+    
+    t = 0
+    T = 0.5
+    dt = T/n
+    while t < T:
+        unext = oneit(VX, EToV, f, D, qt, t0,dt,unext,theta)    
+        t += dt
+    
+    error[i] = np.linalg.norm(unext - u_true(VX,t),np.inf) 
+
+h = T/np.array(N)
+
+plt.figure()
+plt.plot(np.log(h),np.log(error),label="error")
+plt.xlabel("Error")
+plt.ylabel("Step Size: dt")
+plt.show()
+
+a,b = np.polyfit(np.log(h)[-20:],np.log(error)[-20:],1)
+
+#%%
+
+
+
+
+
