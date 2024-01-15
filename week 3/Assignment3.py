@@ -1,5 +1,7 @@
 import scipy.sparse as sp
 import numpy as np
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 
 def conelmtab(x0, L, noelms):
     VX = np.linspace(x0, x0+L, noelms+1)
@@ -89,14 +91,10 @@ def RS_1D(R,S,dt,d2):
 
     return R,S
 
-
-# Step 4 Factor but we don't.
-
 def construct_e(S,b,un,d2):
     return S@un + d2*b
 
 
-# Step 7 + 8
 def advance_b(d,EToV, qt,tnext):
     bnext = np.zeros(len(EToV[:,0])+1)
 
@@ -119,7 +117,6 @@ def advance_b(d,EToV, qt,tnext):
 
     return bnext
 
-# Step 9
 def update_e(e,bnext,d1):
     return e + d1*bnext    
     
@@ -133,21 +130,17 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     # Step 2: Dirichlet BC
     R,S, b, d = dirbc1D(f, R,S, b)
 
-    # Compute d1, d2
-
     # Step 3: Overwrite R and S
     R,S = RS_1D(R,S,dt,d2)
 
     # Step 5 + 6: Construct e
-
-    un = np.zeros(len(b)) # this will be the solution from the previous timestep
-    e = construct_e(S,b,un,d2)
+    e = S@un + d2*b
 
     # Step 7 + 8: Advance b
-    b = advance_b(d,EToV, qt,1)
+    b = advance_b(d,EToV, qt,t0+dt)
 
     # Step 9: compute e
-    e = update_e(e,b,d1)
+    e + d1*b
 
 
     # Step 10: Solve!
@@ -156,8 +149,8 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     return unext
 
 ## Testcase:
-n = 20
-VX, EToV = conelmtab(0,1,n)
+n = 100
+VX, EToV = conelmtab(0,np.pi,n)
 
 D = 1
 qt = lambda t,x: 0
@@ -165,9 +158,27 @@ qt = lambda t,x: 0
 t0 = 0
 f = [0,0]
 
-un = np.sin(VX/np.pi)
+un = np.sin(VX)
 
 theta = 1.0
 dt = 0.1
+# T = 0.5
 
-unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)
+# plt.plot(VX,un,label=f"t=0")
+
+# while t <= T:
+#     un = oneit(VX, EToV, f, D, qt, t,dt,un,theta)
+#     t += dt
+#     plt.plot(VX,un,label=f"t={t}"
+
+
+# plt.legend()
+# plt.show()
+
+unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)   
+
+plt.plot(VX,un,label="u0")
+plt.plot(VX,unext, label="u1")
+plt.plot(VX,un*np.exp(-dt),'--', label="test")
+plt.legend()
+plt.show()
