@@ -1,5 +1,4 @@
 import scipy.sparse as sp
-from scipy.sparse import csr_matrix
 import numpy as np
 
 def conelmtab(x0, L, noelms):
@@ -81,11 +80,11 @@ def dirbc1D(f, R,S, b):
     S[-1,-1] = 1
     S[-1,-2] = S[-2,-1] = 0
 
-    return S,R,b,d
+    return R,S,b,d
 
    
-def RS_1D(R,S,dt,theta):
-    S -= dt*(1-theta)*R
+def RS_1D(R,S,dt,d2):
+    S -= d2*R
     R = S + dt*R 
 
     return R,S
@@ -93,8 +92,8 @@ def RS_1D(R,S,dt,theta):
 
 # Step 4 Factor but we don't.
 
-def construct_e(S,b,un,dt,theta):
-    return S@un + dt*theta*b
+def construct_e(S,b,un,d2):
+    return S@un + d2*b
 
 
 # Step 7 + 8
@@ -118,42 +117,57 @@ def advance_b(d,EToV, qt,tnext):
     bnext[0] = bnext[-1] = 0
     bnext -= d
 
+    return bnext
+
 # Step 9
-def update_e(e,bnext,dt,theta):
-    return e + dt*theta*bnext    
+def update_e(e,bnext,d1):
+    return e + d1*bnext    
     
 
+def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
+    d1, d2 = dt*theta, dt*(1-theta)
+
+    # Step 1: Assemble R, S and b
+    R, S, b = assembly1D(VX, EToV, D, qt, t0)
+
+    # Step 2: Dirichlet BC
+    R,S, b, d = dirbc1D(f, R,S, b)
+
+    # Compute d1, d2
+
+    # Step 3: Overwrite R and S
+    R,S = RS_1D(R,S,dt,d2)
+
+    # Step 5 + 6: Construct e
+
+    un = np.zeros(len(b)) # this will be the solution from the previous timestep
+    e = construct_e(S,b,un,d2)
+
+    # Step 7 + 8: Advance b
+    b = advance_b(d,EToV, qt,1)
+
+    # Step 9: compute e
+    e = update_e(e,b,d1)
+
+
+    # Step 10: Solve!
+    unext = sp.linalg.spsolve(R,e)
+
+    return unext
+
 ## Testcase:
-n = 5
-VX, EToV = conelmtab(0,n,n)
+n = 20
+VX, EToV = conelmtab(0,1,n)
+
 D = 1
-qt = lambda t,x: 1
-t = 0
+qt = lambda t,x: 0
+
+t0 = 0
 f = [0,0]
 
-R, S, b = assembly1D(VX, EToV, D, qt, t)
-R,S, b, d = dirbc1D(f, R,S, b)
+un = np.sin(VX/np.pi)
 
-print('A:')
-print(R.todense())
+theta = 1.0
+dt = 0.1
 
-print(':C')
-print(S.todense())
-
-dt = 1
-theta = 0
-
-R,S = RS_1D(R,S,dt,theta)
-
-print(R.todense())
-
-un = np.ones(len(b))
-e = construct_e(S,b,un,dt,theta)
-
-b = advance_b(d,EToV, qt,1)
-
-e = update_e(e,b,dt,theta)
-
-
-# Step 10: Solve!
-u = sp.linalg.spsolve(R,e)
+unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)
