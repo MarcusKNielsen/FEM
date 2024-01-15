@@ -1,3 +1,4 @@
 {
-    "julia.environmentPath": "c:\\Users\\jhvid\\OneDrive\\Dokumenter\\GitHub\\FEM"
+    "julia.environmentPath": "c:\\Users\\jhvid\\OneDrive\\Dokumenter\\GitHub\\FEM",
+    "python.REPL.enableREPLSmartSend": false
 }
