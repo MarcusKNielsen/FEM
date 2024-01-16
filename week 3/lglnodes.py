@@ -29,14 +29,4 @@ def lglnodes(N):
 
         x = xold - (x * P[:, N] - P[:, N - 1]) / (N1 * P[:, N1 - 1])
 
-    w = 2 / (N * N1 * P[:, N1 - 1] ** 2)
-
-    return x, w, P
-
-
-
-x, w, V = lglnodes(5)
-
-print(x)
-#print(w)
-print(V)
+    return x, P

@@ -1,9 +1,12 @@
-from scipy.special import legendre
+from scipy.special import legendre, eval_legendre
 import numpy as np
+n = 2
+a = -1
+b = 1
 
-def legendre_gauss_lobatto_nodes(n, a, b):
+def legendre_gauss_lobatto_nodes(n,a,b):
     """
-    Compute the Legendre-Gauss-Lobatto nodes for the interval [a, b].
+    Compute the Legendre-Gauss-Lobatto nodes for the interval [-1, 1].
 
     Parameters:
     n (int): The order of the Legendre polynomial (number of nodes).
@@ -14,6 +17,7 @@ def legendre_gauss_lobatto_nodes(n, a, b):
     """
     # Get the Legendre polynomial of degree n
     Pn = legendre(n)
+
 
     # Find its derivative
     Pn_deriv = np.polyder(Pn)
@@ -28,13 +32,17 @@ def legendre_gauss_lobatto_nodes(n, a, b):
     roots = np.real(roots)
 
     # Sort the roots
-    roots.sort()
+    x = np.sort(roots)
+    x = 0.5*(b-a)*x + 0.5*(b+a)
 
-    # Transform the roots to the interval [a, b]
-    return 0.5 * (a + b) + 0.5 * (b - a) * roots
+    V = np.zeros((n+1,n+1))
+    Vr = np.zeros((n+1,n+1))
 
-# Example usage
-n = 5  # Degree of the Legendre polynomial
-a, b = -1, 1  # Interval [a, b]
-lgl_nodes = legendre_gauss_lobatto_nodes(n, a, b)
-lgl_nodes
+    for i in range(n+1):
+        Pi = legendre(i)
+        Pid = Pi.deriv()
+        V[:,i] = Pi(x)
+        Vr[:,i] = Pid(x)
+
+   
+    return V,Vr,x
