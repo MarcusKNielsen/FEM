@@ -2,7 +2,7 @@ from scipy.special import legendre, eval_legendre
 import numpy as np
 
 
-def legendre_gauss_lobatto_nodes(n,a,b):
+def legendre_gauss_lobatto_nodes(n):
     """
     Compute the Legendre-Gauss-Lobatto nodes for the interval [-1, 1].
 
@@ -31,7 +31,7 @@ def legendre_gauss_lobatto_nodes(n,a,b):
 
     # Sort the roots
     x = np.sort(roots)
-    x = 0.5*(b-a)*x + 0.5*(b+a)
+#    x = 0.5*(b-a)*x + 0.5*(b+a)
 
     V = np.zeros((n+1,n+1))
     Vr = np.zeros((n+1,n+1))
@@ -45,10 +45,10 @@ def legendre_gauss_lobatto_nodes(n,a,b):
    
     return V,Vr,x
 
-V,Vr,x = legendre_gauss_lobatto_nodes(n=1,a=-1,b=1)
+# V,Vr,x = legendre_gauss_lobatto_nodes(n=1,a=-1,b=1)
 
-M = np.linalg.inv(V @ V.T)
+# M = np.linalg.inv(V @ V.T)
 
-print(np.sum(M))
+# print(np.sum(M))
 
 
