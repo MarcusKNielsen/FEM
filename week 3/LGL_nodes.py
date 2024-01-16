@@ -1,8 +1,6 @@
 from scipy.special import legendre, eval_legendre
 import numpy as np
-n = 2
-a = -1
-b = 1
+
 
 def legendre_gauss_lobatto_nodes(n,a,b):
     """
@@ -41,8 +39,16 @@ def legendre_gauss_lobatto_nodes(n,a,b):
     for i in range(n+1):
         Pi = legendre(i)
         Pid = Pi.deriv()
-        V[:,i] = Pi(x)
-        Vr[:,i] = Pid(x)
+        V[:,i] = Pi(x) * np.sqrt((2*i+1)/2)
+        Vr[:,i] = Pid(x) * np.sqrt((2*i+1)/2)
 
    
     return V,Vr,x
+
+V,Vr,x = legendre_gauss_lobatto_nodes(n=1,a=-1,b=1)
+
+M = np.linalg.inv(V @ V.T)
+
+print(np.sum(M))
+
+

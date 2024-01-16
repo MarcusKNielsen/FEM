@@ -41,16 +41,9 @@ def new_assembly(VX, EToV, D=1, qt=None, t=None,p=1):
         h = xj-xi
 
 
-        Mn = h/2*M          #(3.50)
-        Kn = 2/h*DrMDr      #(3.59)
+        Mn = h/2*M            #(3.50)
+        Kn = (2/h)*DrMDr      #(3.59)
 
     return M,Mn, Kn
 
-print(VX)
-print(EToV)
-
 M,Mn, Kn = new_assembly(VX, EToV, D=1, qt=None, t=None,p=1)
-
-print(M)
-print(Mn)
-print(Kn)
