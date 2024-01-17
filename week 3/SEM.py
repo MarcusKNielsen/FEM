@@ -2,6 +2,7 @@ import numpy as np
 from LGL_nodes import legendre_gauss_lobatto_nodes as lglnodes
 import scipy.sparse as sp
 import matplotlib.pyplot as plt
+import time
 
 def construct_c(N,p, x0, L):
     C = np.zeros((N,p+1), dtype=int)
@@ -230,6 +231,7 @@ dt = 0.1
 p = 1
 Ns = list(range(2,20))
 error = np.zeros(len(Ns))
+times = np.zeros(len(Ns))
 
 def u_true(x,t):
     return np.sin(x)*np.exp(-D*t)
@@ -243,11 +245,14 @@ for i,ns in enumerate(Ns):
     t = 0
     T = dt
     while t < T:
+        start_time = time.time()  # start timer
         unext = oneit(VX, VX_fine, C, f, D, qt, t,dt,unext,theta, p)
+        end_time = time.time()  # end timer
         t += dt
-    
+    times[i] = end_time - start_time  # store computation time
     error[i] = np.linalg.norm(unext - u_true(VX_fine,t),np.inf) 
 
+print()
 DGF = np.array(Ns)*p+1
 
 plt.figure()
