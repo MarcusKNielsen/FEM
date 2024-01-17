@@ -12,11 +12,17 @@ def construct_c(N,p, x0, L):
             C[n,i] = gidx
             gidx += 1
     VX = np.linspace(x0, x0+L, N+1)
-    return VX, C
+    
+    VX_fine = [VX[0]] 
+    _,_,x = lglnodes(p)
+    for n in range(N):
+        VX_fine.extend(VX[n] + (x[1:] + 1) * (VX[n+1] - VX[n]) / 2)
+
+    return VX, VX_fine, C
 
 #def construct_new_VX(VX,x):
 
-def new_assembly(VX, C, D=1, qt=None, t=None,p=1):
+def new_assembly(VX, VX_fine, C, D=1, qt=None, t=None,p=1):
     M = len(C[:,0])*p+1
     N = len(C[:,0])
     R = np.zeros((M,M))
@@ -30,10 +36,7 @@ def new_assembly(VX, C, D=1, qt=None, t=None,p=1):
     Kn = (2/h)*Dr.T@M_cal@Dr        #(3.59)
     Mn = h/2*M_cal                  #(3.50)
 
-    VX_fine = [VX[0]] 
     for n in range(N):
-        VX_fine.extend(VX[n] + (x[1:] + 1) * (VX[n+1] - VX[n]) / 2) 
-
         for j in range(p+1):
             for i in range(p+1):
                 idx1 = C[n,i]
@@ -49,7 +52,7 @@ def new_assembly(VX, C, D=1, qt=None, t=None,p=1):
                 R[idx1, idx2] += Kn[i,j]
                 S[idx1, idx2] += Mn[i,j]
 
-    return R,S,b, VX_fine
+    return R,S,b
 
 def dirbc1D(f, R,S, b):
     d = np.zeros(len(b))
@@ -99,8 +102,9 @@ def construct_e(S,b,un,d2):
 
 
 # Step 7 + 8
-def advance_b(d, VX_fine, C, qt,tnext):
+def advance_b(d, VX_fine, C, qt,tnext, p):
     bnext = np.zeros(len(d))
+    N = len(C[:,0])
 
     for n in range(N):
         for j in range(p+1):
@@ -123,12 +127,12 @@ def advance_b(d, VX_fine, C, qt,tnext):
 def update_e(e,bnext,d1):
     return e + d1*bnext
 
-def oneit(VX, C, f, D, qt, t0, dt, u0, theta):
+def oneit(VX, VX_fine, C, f, D, qt, t0, dt, un, theta, p):
 
     d1, d2 = dt*theta, dt*(1-theta)
 
     # Step 1: Assemble R, S and b
-    R,S,b, VX_fine = new_assembly(VX, C, D, qt, t0, p)
+    R,S,b = new_assembly(VX, VX_fine, C, D, qt, t0, p)
 
     # Step 2: Dirichlet BC
     R,S, b, d = dirbc1D(f, R, S, b)
@@ -139,12 +143,11 @@ def oneit(VX, C, f, D, qt, t0, dt, u0, theta):
     R,S = RS_1D(R,S,dt,d2)
 
     # Step 5 + 6: Construct e
-    un = u0(VX_fine)
 
     e = construct_e(S,b,un,d2)
 
     # Step 7 + 8: Advance b
-    b = advance_b(d,VX_fine, C, qt,t0+dt)
+    b = advance_b(d,VX_fine, C, qt,t0+dt, p)
 
     # Step 9: compute e
     e = update_e(e,b,d1)
@@ -153,12 +156,69 @@ def oneit(VX, C, f, D, qt, t0, dt, u0, theta):
     # Step 10: Solve!
     unext = np.linalg.solve(R,e)
 
-    return unext, VX_fine
+    return unext
 
 ## Testcase:
 N = 5
 p=3
-VX, C = construct_c(N,p,x0 = 0, L = np.pi)
+L = np.pi
+VX, VX_fine, C = construct_c(N,p,x0 = 0, L = L)
+D = 1
+qt = lambda t,x: 0
+t0 = 0
+f = [0,0]
+theta = 1.0
+dt = 0.1
+u0 = np.sin(VX_fine)
+
+
+# A,C,b, VX_fine = new_assembly(VX, C, D, qt, t0, p)
+
+
+
+unext = oneit(VX, VX_fine, C, f, D, qt, t0,dt,u0,theta, p)
+
+plt.figure()
+plt.plot(VX_fine,u0,label="u0")
+plt.plot(VX_fine,unext,label="unext")
+plt.plot(VX_fine,u0*np.exp(-dt), label="True")
+plt.legend()
+plt.show()
+
+
+# Time Convergence Test
+
+Nt = list(range(2,50))
+error = np.zeros(len(Nt))
+def u_true(x,t):
+    return np.sin(x)*np.exp(-D*t)
+
+
+for i,n in enumerate(Nt):
+
+    unext = u0
+    
+    t = 0
+    T = 0.5
+    dt = T/n
+    while t < T:
+        unext = oneit(VX, VX_fine, C, f, D, qt, t,dt,unext,theta, p)
+        t += dt
+    
+    error[i] = np.linalg.norm(unext - u_true(VX_fine,t),np.inf) 
+
+h = T/np.array(Nt)
+
+plt.figure()
+plt.plot(np.log(h),np.log(error),label="error")
+plt.ylabel("Error")
+plt.xlabel("Step Size: dt")
+plt.show()
+
+a,b = np.polyfit(np.log(h)[-20:],np.log(error)[-20:],1)
+
+#Spatial Convergence Test
+L = np.pi
 D = 1
 qt = lambda t,x: 0
 t0 = 0
@@ -167,15 +227,33 @@ theta = 1.0
 dt = 0.1
 
 
-# A,C,b, VX_fine = new_assembly(VX, C, D, qt, t0, p)
+p = 1
+Ns = list(range(2,20))
+error = np.zeros(len(Ns))
 
-u0 = lambda x: np.sin(x)
+def u_true(x,t):
+    return np.sin(x)*np.exp(-D*t)
 
-unext, VX_fine = oneit(VX, C, f, D, qt, t0,dt,u0,theta)
+
+for i,ns in enumerate(Ns):
+
+    VX, VX_fine, C = construct_c(ns,p,x0 = 0, L = np.pi)
+    unext = u_true(VX_fine,0)
+    
+    t = 0
+    T = dt
+    while t < T:
+        unext = oneit(VX, VX_fine, C, f, D, qt, t,dt,unext,theta, p)
+        t += dt
+    
+    error[i] = np.linalg.norm(unext - u_true(VX_fine,t),np.inf) 
+
+DGF = np.array(Ns)*p+1
 
 plt.figure()
-plt.plot(VX_fine,u0(VX_fine),label="u0")
-plt.plot(VX_fine,unext,label="unext")
-plt.plot(VX_fine,u0(VX_fine)*np.exp(-dt), label="True")
-plt.legend()
+plt.plot(np.log(DGF),np.log(error),label="error")
+plt.ylabel("Error")
+plt.xlabel("Degrees of Freedom")
 plt.show()
+
+a,b = np.polyfit(np.log(DGF),np.log(error),1)
