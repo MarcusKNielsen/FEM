@@ -1,13 +1,15 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from SEM import construct_c,oneit
+from SEM import *
 
 ## Testcase:
-N  = 5
-p  = 3
+N  = 10
+p  = 1
 L  = np.pi
 D  = 1
 f  = [0,0]
+
+t = 0
 
 theta = 1.0
 
@@ -26,7 +28,9 @@ def qt(t,x):
     term3 = k*(2 - 2*(np.pi-x) + x)*np.exp(x)*t
     return term1 + term2 + term3
 
+R,S,b = new_assembly(VX, VX_fine, C, D, qt, t, p)
 
+#%%
 
 u0 = u_true(VX_fine,0)
 
