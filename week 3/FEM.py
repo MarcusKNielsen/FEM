@@ -98,7 +98,7 @@ def construct_e(S,b,un,d2):
 
 
 # Step 7 + 8
-def advance_b(d,EToV, qt,tnext):
+def advance_b(d,VX, EToV, qt,tnext):
     bnext = np.zeros(len(EToV[:,0])+1)
 
     for elm in EToV:
@@ -144,7 +144,7 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     e = construct_e(S,b,un,d2)
 
     # Step 7 + 8: Advance b
-    b = advance_b(d,EToV, qt,t0+dt)
+    b = advance_b(d,VX,EToV, qt,t0+dt)
 
     # Step 9: compute e
     e = update_e(e,b,d1)
@@ -154,71 +154,3 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     unext = sp.linalg.spsolve(R,e)
 
     return unext
-
-## Testcase:
-n = 2
-VX, EToV = conelmtab(0,np.pi,n)
-
-D = 1
-qt = lambda t,x: 0
-
-t0 = 0
-f = [0,0]
-
-un = np.sin(VX)
-
-theta = 1.0
-dt = 0.1
-
-A,C,b = assembly1D(VX, EToV, D, qt, t0)
-
-#%%
-
-unext = oneit(VX, EToV, f, D, qt, t0,dt,un,theta)
-
-plt.figure()
-plt.plot(VX,un,label="u0")
-plt.plot(VX,unext,label="unext")
-plt.plot(VX,un*np.exp(-dt), label="True")
-plt.legend()
-plt.show()
-
-
-#%% Time Convergence test
-
-
-def u_true(x,t):
-    return np.sin(x)*np.exp(-D*t)
-
-
-N = list(range(2,50))
-error = np.zeros(len(N))
-
-
-for i,n in enumerate(N):
-
-    unext = un
-    
-    t = 0
-    T = 0.5
-    dt = T/n
-    while t < T:
-        unext = oneit(VX, EToV, f, D, qt, t ,dt,unext,theta)    
-        t += dt
-    
-    error[i] = np.linalg.norm(unext - u_true(VX,t),np.inf) 
-
-h = T/np.array(N)
-
-plt.figure()
-plt.plot(np.log(h),np.log(error),label="error")
-plt.xlabel("Error")
-plt.ylabel("Step Size: dt")
-plt.show()
-
-a,b = np.polyfit(np.log(h)[-20:],np.log(error)[-20:],1)
-
-#%%
-
-
-
