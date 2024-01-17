@@ -1,8 +1,5 @@
 import numpy as np
 from LGL_nodes import legendre_gauss_lobatto_nodes as lglnodes
-import scipy.sparse as sp
-import matplotlib.pyplot as plt
-import time
 
 def construct_c(N,p, x0, L):
     C = np.zeros((N,p+1), dtype=int)
@@ -21,7 +18,6 @@ def construct_c(N,p, x0, L):
 
     return VX, VX_fine, C
 
-#def construct_new_VX(VX,x):
 
 def new_assembly(VX, VX_fine, C, D=1, qt=None, t=None,p=1):
     M = len(C[:,0])*p+1

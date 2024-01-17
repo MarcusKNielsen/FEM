@@ -1,36 +1,52 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from SEM import *
+from SEM import construct_c,oneit
 
 ## Testcase:
-N = 5
-p=3
-L = np.pi
-VX, VX_fine, C = construct_c(N,p,x0 = 0, L = L)
-D = 1
-qt = lambda t,x: 0
-t0 = 0
-f = [0,0]
+N  = 5
+p  = 3
+L  = np.pi
+D  = 1
+f  = [0,0]
+
 theta = 1.0
+
+VX, VX_fine, C = construct_c(N,p,x0 = 0, L = L)
+
+VX_fine = np.array(VX_fine)
+
+
+def u_true(x,t):
+    return np.sin(x)*np.exp(-np.pi**2 * t) + 0.1*x*(np.pi - x)*np.exp(x)*t
+
+def qt(t,x):
+    k = 0.1
+    term1 = (1-np.pi**2) * np.sin(x)*np.exp(- np.pi**2 * t)
+    term2 = k*x*( (np.pi - x) - (np.pi-x-1)*t ) * np.exp(x)
+    term3 = k*(2 - 2*(np.pi-x) + x)*np.exp(x)*t
+    return term1 + term2 + term3
+
+
+
+u0 = u_true(VX_fine,0)
+
+unext = u_true(VX_fine,0)
 dt = 0.1
-u0 = np.sin(VX_fine)
+T = 1
+t = 0
+while t < T:
+    unext = oneit(VX, VX_fine, C, f, D, qt, t, dt, unext, theta, p)
+    t += dt
 
-
-# A,C,b, VX_fine = new_assembly(VX, C, D, qt, t0, p)
-
-
-
-unext = oneit(VX, VX_fine, C, f, D, qt, t0,dt,u0,theta, p)
 
 plt.figure()
-plt.plot(VX_fine,u0,label="u0")
 plt.plot(VX_fine,unext,label="unext")
-plt.plot(VX_fine,u0*np.exp(-dt), label="True")
+plt.plot(VX_fine,u_true(VX_fine,t), label="True")
 plt.legend()
 plt.show()
 
 
-# Time Convergence Test
+#%% Time Convergence Test
 
 Nt = list(range(2,50))
 error = np.zeros(len(Nt))
@@ -61,7 +77,8 @@ plt.show()
 
 a,b = np.polyfit(np.log(h)[-20:],np.log(error)[-20:],1)
 
-#Spatial Convergence Test
+#%% Spatial Convergence Test
+
 L = np.pi
 D = 1
 qt = lambda t,x: 0
@@ -105,3 +122,4 @@ plt.xlabel("Degrees of Freedom")
 plt.show()
 
 a,b = np.polyfit(np.log(DGF),np.log(error),1)
+
