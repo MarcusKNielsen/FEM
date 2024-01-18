@@ -105,14 +105,15 @@ def advance_b(d, VX_fine, C, qt,tnext, p):
     for n in range(N):
         for j in range(p+1):
             for i in range(j):
-                idx1 = C[n,i]
-                idx2 = C[n,j]
-                xi = VX_fine[idx1]
-                xj = VX_fine[idx2]
-                hi = xj - xi
+                if i == j-1:
+                    idx1 = C[n,i]
+                    idx2 = C[n,j]
+                    xi = VX_fine[idx1]
+                    xj = VX_fine[idx2]
+                    hi = xj - xi
 
-                qtilde = hi/4*(qt(tnext,xi)+qt(tnext,xj))
-                bnext[[idx1,idx2]] += qtilde
+                    qtilde = hi/4*(qt(tnext,xi)+qt(tnext,xj))
+                    bnext[[idx1,idx2]] += qtilde
 
     bnext[0] = bnext[-1] = 0
     bnext -= d
