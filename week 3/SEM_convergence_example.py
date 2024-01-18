@@ -176,9 +176,8 @@ for k, p in enumerate(p_values):
     times[k] = end_time - start_time
     DGF[k] = i*p + 1
 
-P = 45 #W
+P = 63 #W
 C = 0.285 #kgCO2eq/kWh
 
 CO2eq = times/3600*P/1000*C
-
 
