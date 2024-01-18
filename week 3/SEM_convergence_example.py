@@ -174,7 +174,7 @@ for k, p in enumerate(p_values):
     end_time = time.time()
     elements[k] = i
     times[k] = end_time - start_time
-    DGF[k] = i*p + 1
+    DFG[k] = i*p + 1
 
 P = 63 #W
 C = 0.285 #kgCO2eq/kWh
