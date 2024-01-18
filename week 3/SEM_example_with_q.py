@@ -10,7 +10,7 @@ x0 = 0
 L = np.pi
 VX,VX_fine, C = construct_c(n, p, x0, L)
 D = 1
-t0 = 0
+t = 0
 f = [0,0]
 
 VX_fine = np.array(VX_fine)
@@ -56,6 +56,61 @@ while t < T:
     t += dt
     k += 1
 plt.legend()
+plt.show()
+
+#%% 3d plot
+
+unext = u_true(VX_fine,0)
+N = 50
+n = 100
+t = 0
+T = 0.5
+dt = T/n
+U = np.zeros([N*p + 1, n + 1])
+U[:,0] = unext
+k = 1
+t_arr = [0]
+while t < T:
+    unext = oneit(VX, VX_fine, C, f, D, qt, t, dt, unext, theta, p)
+    U[:,k] = unext
+    t += dt
+    t_arr.append(t)
+    k += 1
+    
+#%% 3d plot continued
+from mpl_toolkits.mplot3d import Axes3D
+
+# Getting the unique values and sorting them
+x = VX_fine
+
+# Creating the meshgrid
+T, X = np.meshgrid(t_arr,x)
+
+size = 12
+
+# Create a figure and a 3D axis
+fig = plt.figure(figsize=(12, 4))
+ax = fig.add_subplot(121, projection='3d')
+
+# Surface plot
+surf = ax.plot_surface(T, X, U, cmap='plasma')
+ax.set_xlabel('Time: t',fontsize=size)
+ax.set_ylabel('Space: x',fontsize=size)
+ax.set_zlabel('Temperature: u(x,t)',fontsize=size)
+ax.set_title("Numerical Solution (SEM)",fontsize=size+1)
+
+# Second surface plot
+U1 = u_true(X,T)
+ax2 = fig.add_subplot(122, projection='3d')  # 1 row, 2 columns, 2nd subplot
+surf2 = ax2.plot_surface(T, X, U1, cmap='plasma')
+ax2.set_xlabel('Time: t',fontsize=size)
+ax2.set_ylabel('Space: x',fontsize=size)
+ax2.set_zlabel('Temperature: u(x,t)',fontsize=size)
+ax2.set_title("Analytical Solution",fontsize=size+1)
+
+plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, wspace=-0.3)
+#plt.tight_layout()
+
 plt.show()
 
 
