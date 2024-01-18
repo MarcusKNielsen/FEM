@@ -16,7 +16,7 @@ def construct_c(N,p, x0, L):
     for n in range(N):
         VX_fine.extend(VX[n] + (x[1:] + 1) * (VX[n+1] - VX[n]) / 2)
 
-    return VX, VX_fine, C
+    return VX, np.array(VX_fine), C
 
 
 def new_assembly(VX, VX_fine, C, D=1, qt=None, t=None,p=1):
