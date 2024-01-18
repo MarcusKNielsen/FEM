@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from SEM import *
 
 ## Testcase:
-N  = 10
+N  = 100
 p  = 1
 L  = np.pi
 D  = 1

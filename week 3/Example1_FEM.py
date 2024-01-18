@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import time
 
 ## Testcase:
-N  = 10
+N  = 50
 #p  = 3
 L  = np.pi
 D  = 1
@@ -34,7 +34,7 @@ R, S, b = assembly1D(VX, EToV, D, qt, t)
 #%%
 
 unext = u0
-dt = 0.1
+dt = 0.001
 T = 1
 t = 0
 while t < T:
@@ -50,7 +50,7 @@ plt.show()
 
 #%% Time Convergence Test
 
-Nt = list(range(25,50))
+Nt = list(range(25,500,25))
 error = np.zeros(len(Nt))
 
 for i,n in enumerate(Nt):
@@ -80,20 +80,16 @@ a,b = np.polyfit(np.log(dt),np.log(error),1)
 
 L = np.pi
 D = 1
-qt = lambda t,x: 0
 t0 = 0
 f = [0,0]
 theta = 1.0
-dt = 0.1
+dt = 0.001
 
 
 p = 1
-Ns = list(range(2,20))
+Ns = list(range(2,100))
 error = np.zeros(len(Ns))
 times = np.zeros(len(Ns))
-
-def u_true(x,t):
-    return np.sin(x)*np.exp(-D*t)
 
 
 for i,ns in enumerate(Ns):
@@ -109,10 +105,12 @@ for i,ns in enumerate(Ns):
         end_time = time.time()  # end timer
         t += dt
     times[i] = end_time - start_time  # store computation time
-    error[i] = np.linalg.norm(unext - u_true(VX,t),np.inf) 
+    error[i] = np.linalg.norm(unext - u_true(VX,t),np.inf)
 
 print()
-DGF = np.array(Ns)*p+1
+DGF = np.array(Ns)+1
+
+h = L/np.array(Ns)
 
 plt.figure()
 plt.plot(np.log(DGF),np.log(error),label="error")

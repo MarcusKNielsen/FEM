@@ -149,7 +149,6 @@ def oneit(VX, EToV, f, D, qt, t0,dt,un,theta):
     # Step 9: compute e
     e = update_e(e,b,d1)
 
-
     # Step 10: Solve!
     unext = sp.linalg.spsolve(R,e)
 
