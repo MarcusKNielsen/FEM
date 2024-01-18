@@ -40,11 +40,11 @@ def new_assembly(VX, VX_fine, C, D=1, qt=None, t=None,p=1):
                 idx2 = C[n,j]
                 xi = VX_fine[idx1]
                 xj = VX_fine[idx2]
-                if i < j:
+                if i == j-1:
                     hi = xj - xi
 
                     qtilde = hi/4*(qt(t,xi)+qt(t,xj))
-                    b[[i,j]] += qtilde
+                    b[[idx1,idx2]] += qtilde
 
                 R[idx1, idx2] += Kn[i,j]
                 S[idx1, idx2] += Mn[i,j]
@@ -55,7 +55,7 @@ def dirbc1D(f, R,S, b,p):
     d = np.zeros(len(b))
 
     # Boundary conditions
-    temp = R[1:p+1,0]*f[0]
+    temp = R[0,1:p+1]*f[0]
     
     b[0] = d[0] = f[0]
 
@@ -64,8 +64,6 @@ def dirbc1D(f, R,S, b,p):
     d[1:p+1] += temp
 
     R[0,0] = R[:p+1,0] = R[0,:p+1] = 0
-
-    
 
     S[:p+1,0] = S[0,:p+1] = 0
     S[0,0] = 1
@@ -77,11 +75,12 @@ def dirbc1D(f, R,S, b,p):
     b[-(p+1):-1] -= temp
     d[-(p+1):-1] += temp
 
-    R[-1,-(p+1):] = R[-(p+1):,-1]=  0
+    R[-1,-(p+1):] = R[-(p+1):,-1] =  0
     
     S[-1,-(p+1):-1] = S[-(p+1):-1,-1] = 0
     S[-1,-1] = 1
     
+    b[0] = d[0] = f[0]
 
     return R,S,b,d
    
@@ -113,7 +112,7 @@ def advance_b(d, VX_fine, C, qt,tnext, p):
                 hi = xj - xi
 
                 qtilde = hi/4*(qt(tnext,xi)+qt(tnext,xj))
-                bnext[[i,j]] += qtilde
+                bnext[[idx1,idx2]] += qtilde
 
     bnext[0] = bnext[-1] = 0
     bnext -= d
