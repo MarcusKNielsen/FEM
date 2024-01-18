@@ -121,9 +121,9 @@ qt = lambda x: 0
 f = [1, np.exp(2)]
 u = lambda x: np.exp(x)
 
-Ne = list(range(2, 40))
+Ne = list(range(2, 15, 5))
 
-p_values = [1, 2, 3]
+p_values = [1, 2, 3, 4, 5, 6]
 
 plt.figure()
 
@@ -135,13 +135,14 @@ for p in p_values:
         
     DGF = np.array(Ne) * p + 1
 
-    a, b = np.polyfit(np.log(H), np.log(error), 1)
+    a, b = np.polyfit(np.log10(DGF), np.log10(error), 1)
 
-    plt.plot(np.log10(H), np.log10(error), label=f"p = {p}, a = {a:.2f}")
+    plt.plot(np.log10(DGF), np.log10(error), label=f"p = {p}, a = {a:.2f}")
 
 plt.title("Convergence Test")
 plt.ylabel("Error (log scale)")
 plt.xlabel("Degrees of Freedom (log scale)")
+# plt.axhline(y=np.log(1e-6), color='r', linestyle='--', label="Error bound")
 plt.legend()
 plt.show()
 
@@ -153,22 +154,31 @@ qt = lambda x: 0
 f = [1, np.exp(2)]
 u = lambda x: np.exp(x)
 
-Ne = list(range(2, 10))
+Ne = list(range(2, 1000))
 H = L / np.array(Ne)
 p_values = [1, 2, 3, 4, 5, 6]
 times = np.zeros(len(p_values))
-
-
+elements = np.zeros(len(p_values))
+DFG = np.zeros(len(p_values))
+errors = np.zeros(len(p_values))
 for k, p in enumerate(p_values):
     
     #for i, n in enumerate(Ne):
     start_time = time.time()
     error = 1
     i = 0
-    while error > 1e-6:
+    while error > (1e-6):
         error = convergence_test(Ne[i], p, x0, L, qt, f, u)
         i += 1
+    errors[k] = error
     end_time = time.time()
+    elements[k] = i
     times[k] = end_time - start_time
+    DGF[k] = i*p + 1
+
+P = 45 #W
+C = 0.285 #kgCO2eq/kWh
+
+CO2eq = times/3600*P/1000*C
 
 
